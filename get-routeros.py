@@ -6,37 +6,38 @@ from os import path as filepath
 
 
 class Parser(html.HTMLParser):
-    url_base = ''
     url_list = []
 
     def handle_starttag(self, tag: str, attrs: list) -> None:
         if tag == 'a':
             attrs = dict(attrs)
 
-            if (attrs.get('class', '') == 'download downloadBox') and attrs.get('href'):
-                self.url_list.append(urllib.urljoin(self.url_base, attrs.get('href')))
+            if attrs.get('href'):
+                url = urllib.urlparse(attrs.get('href', ''))
+
+                if url.scheme == 'https' and url.netloc.startswith('download'):
+                    filename = filepath.basename(url.path)
+
+                    if filename.startswith('routeros-mipsbe'):
+                        self.url_list.append(url.geturl())
 
 
 if __name__ == '__main__':
-    url_base = 'https://golang.org/dl/'
+    url_base = 'https://mikrotik.com/download'
     url_list = None
 
     with request.urlopen(url_base) as req:
-        print('Get urls from: {}'.format(url_base))
         parser = Parser()
-        parser.url_base = url_base
         parser.feed(req.read().decode())
         url_list = parser.url_list.copy()
 
-    url = list(filter(lambda it: it.endswith('linux-amd64.tar.gz'), url_list))
-
-    if url:
-        url = urllib.urlparse(url[0])
-        filename = filepath.basename(url.path)
+    for item in url_list[:2]:
+        item = urllib.urlparse(item)
+        filename = filepath.basename(item.path)
 
         if not filepath.exists(filename):
             print('Start download: {}'.format(filename))
-            (filename, _) = request.urlretrieve(url.geturl(), filename)
+            (filename, _) = request.urlretrieve(item.geturl(), filename)
 
         else:
             print('File is exist: {}'.format(filename))
