@@ -12,23 +12,23 @@ class Parser(html.HTMLParser):
     def handle_starttag(self, tag: str, attrs: list) -> None:
         if tag == 'a':
             attrs = dict(attrs)
+            item = attrs.get('href')
 
-            if (attrs.get('class', '') == 'download downloadBox') and attrs.get('href'):
-                self.url_list.append(urllib.urljoin(self.url_base, attrs.get('href')))
+            if item:
+                self.url_list.append(urllib.urljoin(self.url_base, item))
 
 
 if __name__ == '__main__':
-    url_base = 'https://golang.org/dl/'
+    url_base = 'http://archlinux.astra.in.ua/iso/latest/'
     url_list = None
 
     with request.urlopen(url_base) as req:
-        print('Get urls from: {}'.format(url_base))
         parser = Parser()
         parser.url_base = url_base
         parser.feed(req.read().decode())
         url_list = parser.url_list.copy()
 
-    url_list = list(filter(lambda it: it.endswith('linux-amd64.tar.gz'), url_list))
+    url_list = list(filter(lambda it: it.endswith('x86_64.iso'), url_list))
 
     if url_list:
         url = urllib.urlparse(url_list[0])
