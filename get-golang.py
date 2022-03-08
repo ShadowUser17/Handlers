@@ -3,6 +3,7 @@ from urllib import parse as urllib
 from urllib import request
 from html import parser as html
 from os import path as filepath
+from sys import platform
 
 
 class Parser(html.HTMLParser):
@@ -18,7 +19,7 @@ class Parser(html.HTMLParser):
 
 
 if __name__ == '__main__':
-    url_base = 'https://golang.org/dl/'
+    url_base = 'https://go.dev/dl/'
     url_list = None
 
     with request.urlopen(url_base) as req:
@@ -28,7 +29,14 @@ if __name__ == '__main__':
         parser.feed(req.read().decode())
         url_list = parser.url_list.copy()
 
-    url_list = list(filter(lambda it: it.endswith('linux-amd64.tar.gz'), url_list))
+    if platform.startswith('darwin'):
+        url_list = list(filter(lambda it: it.endswith('darwin-amd64.pkg'), url_list))
+
+    elif platform.startswith('cygwin'):
+        url_list = list(filter(lambda it: it.endswith('windows-amd64.msi'), url_list))
+
+    else:
+        url_list = list(filter(lambda it: it.endswith('linux-amd64.tar.gz'), url_list))
 
     if url_list:
         url = urllib.urlparse(url_list[0])
