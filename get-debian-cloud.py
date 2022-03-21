@@ -35,7 +35,7 @@ if __name__ == '__main__':
     url_list = list(filter(lambda it: url_regex.match(it), url_list))
 
     if url_list:
-        url_regex = re_compile('.*-(generic-amd64)-.*\.qcow2$')
+        url_regex = re_compile('.*-(nocloud-amd64)-.*\.qcow2$')
         url_base = urllib.urlparse(url_list[-1])
         url_base = url_base.geturl()
 
